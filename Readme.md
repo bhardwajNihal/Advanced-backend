@@ -38,6 +38,4 @@
     - cors  ==> to enable cross origin resourse sharing
     - cookie-parser ==> to safely access user cookies
 
-<!-- Creating a video streaming app like youtube -->
-
-17. Understanding how to create some advanced database models - user and video models
+17. standard approach to creating database schemas and models

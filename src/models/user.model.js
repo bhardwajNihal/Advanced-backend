@@ -42,7 +42,7 @@ const userShchema = new mongoose.Schema({
             required : [true, 'password is required']
         }
     },
-    {timestamps: true}
+    {timestamps: true}      // automatically add created_at, to keep track of time
 );
 
 // can write some logic to be executed just before or after the data is saved to the db,
