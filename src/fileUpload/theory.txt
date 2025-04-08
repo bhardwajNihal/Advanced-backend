@@ -1,0 +1,18 @@
+
+
+Multer = Node.js middleware to handle multipart/form-data (which browsers use when uploading files)
+Multer just receives and parses the file, we can then store it to desired location(either locally or on cloud)
+Store it:
+    🖥️ Locally using diskStorage.
+    ☁️ Cloud using platforms like Cloudinary, AWS S3, Firebase Storage, etc.
+
+
+# Storing file in our local storage
+    - when working on small scale projects
+    -Multer receives the file via an HTML form.
+    - DiskStorage tells multer where to save the file on our local machine, and what name to give it.    
+    - File gets stored in the specified folder like "public/uploads"
+
+
+# storing files on cloud platforms - Cloudinary is a popular choise
+    - 
