@@ -33,9 +33,14 @@
         - nodemon runs the index.js file from the specified directory (src/node).
 15. start the server, 
 
-
 16. Some important npm packages to be imported in our express App : 
     - cors  ==> to enable cross origin resourse sharing
     - cookie-parser ==> to safely access user cookies
 
 17. standard approach to creating database schemas and models
+
+18. custom api responses
+    - success response
+    - custom ApiError response
+    - global error handler middleware
+    - catch async - a higher order function to wrap the async functions and handling try catch for each
