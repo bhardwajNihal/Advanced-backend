@@ -1,12 +1,12 @@
 // database connection logic
 
 import mongoose from "mongoose";
-import { DB_NAME } from "../constants.js"
+import {mongodb_connection_string, db_name} from "../configs.js"
 
 const connectDatabase = async () => {
     try{
-        const connectionInstance = await mongoose.connect(`${process.env.MONGODB_CONNECTION_STRING}/${DB_NAME}`);
-        console.log(connectionInstance);
+        const connectionInstance = await mongoose.connect(`${mongodb_connection_string}/${db_name}`);
+        // console.log(connectionInstance);
         console.log("Database connected successfully!!!");
         
     }catch(error){

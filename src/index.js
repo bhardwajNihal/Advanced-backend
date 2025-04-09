@@ -1,13 +1,9 @@
 // importing express
     import express from "express"
     const app = express()
+    import { port } from "./configs.js";
 // import function that have the db connection logic
     import connectDatabase from "./db/index.js";
-// importing environment variables
-    import dotenv from "dotenv";
-    dotenv.config({                         //configuring environment variables
-        path : "./env"
-    })
 
 // middleware to securely access cookies from user's browser
     import cookieParser from "cookie-parser";
@@ -15,10 +11,7 @@
 
 //importing and configuring cors 
     import cors from "cors"
-    app.use(cors({
-        origin : process.env.CORS_ORIGIN,
-        credentials : true                      // Allows cookies or other credentials in cross-origin requests.
-    }))
+    app.use(cors());
 
 // a middleware to accept json
     app.use(express.json({
@@ -34,13 +27,19 @@
     app.use(express.static("public"))           // for public assets
 
 
+// importing routes, 
+import userRoute from "./routes/userRoutes.js";
+
+app.use("/user", userRoute)
+
+
 
 
 // invoking the imported dbconnection function
     connectDatabase()
     .then(() => {                               // async function returns a promise, thus can use .then and .catch block
-        app.listen(process.env.PORT, ()=> {
-            console.log("server listening at port ", process.env.PORT);
+        app.listen(port, ()=> {
+            console.log("server listening at port ", port);
         })
     }).catch((error) => {
         console.log("Database connection failed!!!", error);
