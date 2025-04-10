@@ -7,7 +7,7 @@ export class ApiError extends Error{
 
     constructor(status,message){        // calling constructor with desired parameters
         super(message),             // super(message) calls the parent Error class constructor, 
-        this.status = status        // custom attribute added
+        this.statusCode = status        // custom attribute added
 
         Error.captureStackTrace(this,this.constructor);     // adds helpful stack trace debugging
     }

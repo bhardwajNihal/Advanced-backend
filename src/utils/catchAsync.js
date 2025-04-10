@@ -4,7 +4,7 @@
 // A higher-order function (i.e., a function that takes another function)
 // It automatically wraps our async route so you don’t have to write try/catch every time.
 
-function catchAsync(asyncFunc) {
+export function catchAsync(asyncFunc) {
     return function (req, res, next) {
       // run the async function
       // if it throws error, .catch(next) sends it to global error handler
@@ -12,8 +12,6 @@ function catchAsync(asyncFunc) {
     };
   }
   
-  module.exports = catchAsync;
-
 
 // it use in the route handlers 
     // const catchAsync = require("./utils/catchAsync");
