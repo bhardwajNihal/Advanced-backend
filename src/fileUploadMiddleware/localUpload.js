@@ -1,4 +1,4 @@
-// setup middleware facilitating file upload
+// setup middleware facilitating file upload locally, on our diskstorage
 
 // import multer from 'multer';
 

@@ -5,6 +5,7 @@ import {ApiError} from "../utils/customApiError.js"
 import { sendResponse } from "../utils/customResponse.js";
 import {catchAsync} from "../utils/catchAsync.js"
 import {GlobalErrorHandler} from "../utils/GlobalErrorHandler.js"
+import { AuthMiddleware } from "../authMiddlware/authMiddleware.js";
 
 const userRoute = Router();
 
@@ -34,12 +35,12 @@ userRoute.post("/signup", catchAsync(async(req,res) =>{
 
   const checkIfUsernameExists = await User.findOne({username});
   if(checkIfUsernameExists){
-      throw new ApiError(402, "Username already taken")
+      throw new ApiError(401, "Username already taken")
   }
 
   const checkIfEmailExists = await User.findOne({email});
   if(checkIfEmailExists){
-      throw new ApiError(402, "Email already registered!");
+      throw new ApiError(401, "Email already registered!");
   }
 
 
@@ -120,9 +121,9 @@ userRoute.post("/signin", catchAsync(async(req,res) => {
   await foundUser.save();     ///saving user with updated refreshToken
 
   const options = {
-    httpOnly: true,               // 🛡️ cannot be accessed via JS
+    httpOnly: true,               // 🛡️ cannot be accessed via JS, prevents xss
     secure: true,
-    sameSite : "Strict"
+    sameSite : "Strict"     //prevents CSRF
   }
 
 
@@ -146,6 +147,44 @@ userRoute.post("/signin", catchAsync(async(req,res) => {
       }
     })
   )
+
+}))
+
+
+//logout endpoint 
+userRoute.post("/logout", AuthMiddleware, catchAsync(async(req,res) => {
+
+  // fetch userId
+  const userId = req.user._id;
+
+  //remove refresh token from db
+    await User.findByIdAndUpdate({
+      _id : userId
+    },{
+      $set : {
+        refreshToken : undefined
+      }
+    },{
+      new : true
+    })
+
+    //finally remove cookies
+    const options={
+      httpOnly : true,
+      secure : true
+    }
+
+    res.status(200)
+    .clearCookie("refreshToken",options)
+    .clearCookie("accessToken",options)
+    .json(
+      sendResponse(res,{
+        success : true,
+        message : "user logged out!",
+        data : {}
+      })
+    )
+
 
 }))
 

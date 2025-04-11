@@ -2,6 +2,7 @@ import mongoose from "mongoose";
 import mongooseAggregatePaginate from "mongoose-aggregate-paginate-v2";
 import {access_token_expiry,access_token_secret,refresh_token_expiry,refresh_token_secret} from "../configs.js"
 import bcrypt from "bcrypt"
+import jwt from "jsonwebtoken"
 
 const userSchema = new mongoose.Schema({
 

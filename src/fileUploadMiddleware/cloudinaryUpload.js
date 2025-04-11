@@ -1,3 +1,5 @@
+
+// middleware to upload files to cloudinary
 import multer from 'multer';
 import { v2 as cloudinary } from 'cloudinary';
 import { CloudinaryStorage } from 'multer-storage-cloudinary';
@@ -19,7 +21,7 @@ const storage = new CloudinaryStorage({
   },
 });
 
-export const upload = multer({ storage: storage });     // import this middleware, provide file name, automatically catches incoming files and upload it on cloudinary
+export const upload = multer({ storage: storage });     // import this middleware, provide file name, automatically catches incoming files from request and upload it on cloudinary
 
 
 
