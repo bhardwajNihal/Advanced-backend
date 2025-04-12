@@ -8,6 +8,7 @@ import { GlobalErrorHandler } from "../utils/GlobalErrorHandler.js";
 import { AuthMiddleware } from "../authMiddlware/authMiddleware.js";
 import jwt from "jsonwebtoken";
 import { refresh_token_secret } from "../configs.js";
+import mongoose from "mongoose";
 
 const userRoute = Router();
 
@@ -363,7 +364,6 @@ userRoute.put(
   upload.fields([{ name: "updatedAvatar", maxCount: 1 }]),
   AuthMiddleware,
   catchAsync(async (req, res) => {
-
     const updatedAvatarPath = req.files?.updatedAvatar?.[0].path;
     if (!updatedAvatarPath) {
       throw new ApiError(501, "Failed updating Avatar!");
@@ -397,7 +397,6 @@ userRoute.put(
   upload.fields([{ name: "updatedCoverImage", maxCount: 1 }]),
   AuthMiddleware,
   catchAsync(async (req, res) => {
-
     const updatedCoverImagePath = req.files?.updatedCoverImage?.[0].path;
     if (!updatedCoverImagePath) {
       throw new ApiError(501, "Failed updating cover image!");
@@ -425,13 +424,153 @@ userRoute.put(
   })
 );
 
+// endpoint to fetch complete profile details of a channel, in youtube like video streaming app
+userRoute.get(
+  "/profile/:id",
+  AuthMiddleware,
+  catchAsync(async (req, res) => {
+    const { username } = req.params; // profile/username endpoint
+
+    if (!username) {
+      throw new ApiError(400, "username not provided!");
+    }
+
+    // writing mongoDb aggregation piplines to fetch details based on logic
+    // Aggregation allows you to perform advanced queries and computations in MongoDB, like joins ($lookup), computed fields ($addFields), and filters ($match)
+
+    const channelDetails = await User.aggregate([
+      //1st pipeline to filter out user, whose profile is to be fetched
+      {
+        $match: { username: username.toLowerCase() },
+      },
+      //2nd pipeline join the subscriptions collection where the channel field matches the user's _id.
+      // thus getting the no. of subscribers of the visited channel
+      {
+        $lookup: {
+          from: "subscriptions", // the model to choose from
+          localField: "_id", // what field from current user to match from
+          foreignField: "channel", // channel is nothing but a objectId i.e. userId
+          as: "subscribers", // result name
+        },
+      },
+      //3rd pipeline to join the subscriptions collection where the subscribers field matches the user's id
+      // thus getting the no. of channels the channel owner himself subscribed to
+      {
+        $lookup: {
+          from: "subscriptions",
+          localField: "_id",
+          foreignField: "subscriber",
+          as: "subscribedTo",
+        },
+      },
+      //4th pipeline to return the required fields
+      {
+        $addFields: {
+          subscribersCount: {
+            $size: "$subscribers",
+          },
+          subscribedToCount: {
+            $size: "$subscribedTo",
+          },
+          //check if the current logged In user is in the subscribers list
+          isSubscribed: {
+            $cond: {
+              if: { $in: [req.user?._id, "$subscribers.subscriber"] },
+              then: true,
+              else: false,
+            },
+          },
+        },
+      },
+      //finally adding the fields we want to return to the client
+      {
+        $project: {
+          fullName: 1,
+          username: 1,
+          email: 1,
+          avatar: 1,
+          coverImage: 1,
+          subscribersCount: 1,
+          subscribedToCount: 1,
+          isSubscribed: 1,
+        },
+      },
+    ]);
+
+    if (!channelDetails.length) {
+      throw new ApiError(403, "channel does not exists!");
+    }
+
+    // finally return the detailed response
+    res.status(200).json(
+      sendResponse(res, {
+        statuscode: 200,
+        success: true,
+        message: "Channel details fetched successfully!",
+        data: channelDetails[0], // data is returned as an array usually 1st index is populated
+      })
+    );
+  })
+);
+
+// another endpoint using aggregation pipiline to fetch user's watch history
+userRoute.get(
+  "/watch-history",
+  AuthMiddleware,
+  catchAsync(async (req, res) => {
+    const user = await User.aggregate([
+      {
+        $match: { _id: new mongoose.Schema.Types.ObjectId(req.user?._id) }, // this conversion is mandatory, as its not automatically handled in aggregation pipelines, like mongoDb documents
+      },
+      {
+        $lookup: {
+          from: "videos", // join videos doc, to user's.
+          localField: "watchHistory", //matching watchHistory in user's doc,
+          foreignField: "_id", //to the _id of videos doc
+          as: "watchHistory", // return as watch history
+          pipeline: [     // a nested pipeline to join each video with the owner's user profile,
+            {
+              $lookup: {
+                from: "users",
+                localField: "owner",
+                foreignField: "_id",
+                as: "owner",
+                pipeline: [
+                  {
+                    $project: {     // return only these fields from user's doc after join
+                      fullName: 1,
+                      username: 1,
+                      avatar: 1,
+                    },
+                  },
+                ],
+              },
+            },
+          ],
+        },
+      },
+    ]);
+
+    return res.status(200).json(
+      sendResponse(res, {
+        message: "Watch history fetched!",
+        data: user[0].watchHistory,
+      })
+    );
+  })
+);
+
 //todos
 // 1. adding subscription schema✅
 // 2. update password endpoint✅
 // 3. update profile endpoint✅
 // 4. update avatar endpoint✅
 // 5. update coverImage endpoint✅
+// 6. add aggregation pipelines to
+  // - fetch a channel's profile details.✅
+  // - fetch a user's watch history✅
 
+  
 // passing all the caught errors to globalErrorhandler for standardized response
 userRoute.use(GlobalErrorHandler);
 
