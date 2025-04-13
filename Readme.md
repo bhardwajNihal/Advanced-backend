@@ -44,3 +44,11 @@
     - custom ApiError response
     - global error handler middleware
     - catch async - a higher order function to wrap the async functions and handling try catch for each
+
+19. Wrote middlewares to upload files using Multer.
+    - To local disk storage.
+    - To cloud - cloudinary.
+   
+20. Done with the register and signin controller.
+21. Access and Refresh token.
+22. Finally MongoDB Aggregation pipelines.
